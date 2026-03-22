@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <title>AcroSport Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Armenian+Noto+Sans&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans Armenian', sans-serif; background: #f4f4f9; padding: 20px; margin: 0; }
+        header { background: #1a1a1a; color: #ffcc00; padding: 20px; text-align: center; font-weight: bold; font-size: 22px; }
+        #login-box { max-width: 350px; margin: 80px auto; background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        #admin-panel { display: none; max-width: 1200px; margin: 20px auto; }
+        .section { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        h3 { border-bottom: 2px solid #ffcc00; padding-bottom: 8px; margin-top: 0; }
+        .add-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 8px; outline: none; }
+        .btn-add { background: #28a745; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
+        th { background: #1a1a1a; color: #ffcc00; }
+        .delete-btn { background: #ff4d4d; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 5px; }
+        button#login-btn { width: 100%; background: #1a1a1a; color: #ffcc00; padding: 12px; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <header>AcroSport Admin Panel</header>
+
+    <div id="login-box">
+        <h2>Մուտք</h2>
+        <input type="password" id="admin-pass" placeholder="Գաղտնաբառ">
+        <button id="login-btn">Մուտք Գործել</button>
+    </div>
+
+    <div id="admin-panel">
+        <div class="section">
+            <h3>Ավելացնել նոր աշակերտ</h3>
+            <div class="add-form">
+                <input type="text" id="add-parent" placeholder="Ծնող">
+                <input type="text" id="add-child" placeholder="Երեխա">
+                <input type="number" id="add-age" placeholder="Տարիք">
+                <input type="tel" id="add-phone" placeholder="Հեռախոս">
+                <select id="add-day">
+                    <option value="Երեքշաբթի">Երեքշաբթի</option>
+                    <option value="Չորեքշաբթի">Չորեքշաբթի</option>
+                    <option value="Հինգշաբթի">Հինգշաբթի</option>
+                    <option value="Ուրբաթ">Ուրբաթ</option>
+                </select>
+                <select id="add-time">
+                    <option value="15:00">15:00</option>
+                    <option value="16:00">16:00</option>
+                    <option value="17:00">17:00</option>
+                    <option value="18:00">18:00</option>
+                </select>
+                <select id="add-gym">
+                    <option value="Մարզադահլիճ 1">Մարզադահլիճ 1</option>
+                    <option value="Մարզադահլիճ 2">Մարզադահլիճ 2</option>
+                </select>
+                <button class="btn-add" id="manual-add-btn">Ավելացնել</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Գրանցվածների Ցուցակ</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ծնող</th>
+                            <th>Երեխա</th>
+                            <th>Տարիք</th>
+                            <th>Հեռախոս</th>
+                            <th>Օր</th>
+                            <th>Ժամ</th>
+                            <th>Դահլիճ</th>
+                            <th>Ջնջել</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <a href="index.html" style="text-decoration:none; color:#666;">← Վերադառնալ կայք</a>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getDatabase, ref, onValue, remove, push } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCsOaBKfyOfLkCq8rX6tKaaRMLIdLS4w0Y",
+            authDomain: "acrosport-bdd97.firebaseapp.com",
+            projectId: "acrosport-bdd97",
+            databaseURL: "https://acrosport-bdd97-default-rtdb.firebaseio.com",
+            storageBucket: "acrosport-bdd97.firebasestorage.app",
+            messagingSenderId: "23545482019",
+            appId: "1:23545482019:web:055ec5ff5183264852da96"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        document.getElementById('login-btn').addEventListener('click', () => {
+            if(document.getElementById('admin-pass').value === "Acro2026") {
+                document.getElementById('login-box').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                fetchData();
+            } else alert("Սխալ է:");
+        });
+
+        function fetchData() {
+            onValue(ref(db, 'registrations'), (snapshot) => {
+                const tbody = document.getElementById('table-body');
+                tbody.innerHTML = "";
+                snapshot.forEach((childSnapshot) => {
+                    const data = childSnapshot.val();
+                    const id = childSnapshot.key;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${data.parent_name}</td>
+                            <td>${data.child_name}</td>
+                            <td>${data.child_age}</td>
+                            <td>${data.phone}</td>
+                            <td>${data.visit_day}</td>
+                            <td>${data.visit_time}</td>
+                            <td>${data.gym_location || '-'}</td>
+                            <td><button class="delete-btn" onclick="deleteData('${id}')">Ջնջել</button></td>
+                        </tr>`;
+                });
+            });
+        }
+
+        document.getElementById('manual-add-btn').addEventListener('click', () => {
+            const newData = {
+                parent_name: document.getElementById('add-parent').value,
+                child_name: document.getElementById('add-child').value,
+                child_age: document.getElementById('add-age').value,
+                phone: document.getElementById('add-phone').value,
+                visit_day: document.getElementById('add-day').value,
+                visit_time: document.getElementById('add-time').value,
+                gym_location: document.getElementById('add-gym').value,
+                timestamp: new Date().toLocaleString()
+            };
+            if(newData.parent_name && newData.child_name) {
+                push(ref(db, 'registrations'), newData).then(() => {
+                    alert("Ավելացվեց:");
+                    document.querySelectorAll('.add-form input').forEach(i => i.value = "");
+                });
+            }
+        });
+
+        window.deleteData = (id) => { if(confirm("Ջնջե՞լ")) remove(ref(db, 'registrations/' + id)); };
+    </script>
+</body>
+</html>

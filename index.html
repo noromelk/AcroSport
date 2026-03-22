@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcroSport - Գրանցում</title>
+    <link href="https://fonts.googleapis.com/css2?family=Armenian+Noto+Sans&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans Armenian', sans-serif; background-color: #f4f4f9; margin: 0; display: flex; flex-direction: column; align-items: center; color: #333; }
+        header { background-color: #1a1a1a; color: #ffcc00; width: 100%; padding: 25px 0; text-align: center; font-size: 28px; font-weight: bold; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .container { max-width: 450px; width: 90%; background: white; padding: 30px; margin: 30px 0; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h2 { text-align: center; margin-bottom: 25px; color: #1a1a1a; border-bottom: 2px solid #ffcc00; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s; }
+        input:focus, select:focus { border-color: #ffcc00; box-shadow: 0 0 8px rgba(255, 204, 0, 0.4); }
+        button { width: 100%; background-color: #ffcc00; color: #1a1a1a; border: none; padding: 18px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 10px; }
+        button:hover { background-color: #e6b800; transform: translateY(-2px); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .admin-btn { margin-top: 10px; text-decoration: none; color: #1a1a1a; font-weight: bold; border: 1px solid #1a1a1a; padding: 10px 20px; border-radius: 30px; font-size: 14px; transition: 0.3s; margin-bottom: 40px; }
+    </style>
+</head>
+<body>
+
+    <header>AcroSport</header>
+
+    <div class="container">
+        <h2>Երեխայի Գրանցում</h2>
+        <form id="registration-form">
+            <div class="form-group">
+                <label>Ծնողի Անուն Ազգանուն</label>
+                <input type="text" id="parent-name" placeholder="Օր.՝ Արմեն Պետրոսյան" required>
+            </div>
+            <div class="form-group">
+                <label>Երեխայի Անուն Ազգանուն</label>
+                <input type="text" id="child-name" placeholder="Օր.՝ Անի Պետրոսյան" required>
+            </div>
+            <div class="form-group">
+                <label>Երեխայի Տարիքը</label>
+                <input type="number" id="child-age" min="4" placeholder="Տարիքը" required>
+            </div>
+            <div class="form-group">
+                <label>Հեռախոսահամար</label>
+                <input type="tel" id="phone" placeholder="094XXXXXX" required>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Օրը</label>
+                    <select id="visit-day" required>
+                        <option value="Երեքշաբթի">Երեքշաբթի</option>
+                        <option value="Չորեքշաբթի">Չորեքշաբթի</option>
+                        <option value="Հինգշաբթի">Հինգշաբթի</option>
+                        <option value="Ուրբաթ">Ուրբաթ</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Ժամը</label>
+                    <select id="visit-time" required>
+                        <option value="15:00">15:00</option>
+                        <option value="16:00">16:00</option>
+                        <option value="17:00">17:00</option>
+                        <option value="18:00">18:00</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Ո՞ր մարզադահլիճն եք նախընտրում</label>
+                <select id="gym-location" required>
+                    <option value="Մարզադահլիճ 1">Մարզադահլիճ 1</option>
+                    <option value="Մարզադահլիճ 2">Մարզադահլիճ 2</option>
+                </select>
+            </div>
+
+            <button type="submit" id="submit-btn">Ուղարկել Հայտը</button>
+        </form>
+    </div>
+
+    <a href="admin.html" class="admin-btn">Մուտք Ադմին</a>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCsOaBKfyOfLkCq8rX6tKaaRMLIdLS4w0Y",
+            authDomain: "acrosport-bdd97.firebaseapp.com",
+            projectId: "acrosport-bdd97",
+            databaseURL: "https://acrosport-bdd97-default-rtdb.firebaseio.com",
+            storageBucket: "acrosport-bdd97.firebasestorage.app",
+            messagingSenderId: "23545482019",
+            appId: "1:23545482019:web:055ec5ff5183264852da96"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        emailjs.init("AuU5y72Z9N4khQdVy");
+
+        document.getElementById('registration-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerText = "Ուղարկվում է...";
+
+            const formData = {
+                parent_name: document.getElementById('parent-name').value,
+                child_name: document.getElementById('child-name').value,
+                child_age: document.getElementById('child-age').value,
+                phone: document.getElementById('phone').value,
+                visit_day: document.getElementById('visit-day').value,
+                visit_time: document.getElementById('visit-time').value,
+                gym_location: document.getElementById('gym-location').value,
+                timestamp: new Date().toLocaleString()
+            };
+
+            push(ref(db, 'registrations'), formData)
+                .then(() => {
+                    return emailjs.send('service_xjbr5cd', 'template_qqx01iq', formData);
+                })
+                .then(() => {
+                    alert("Հայտը հաջողությամբ ուղարկվեց:");
+                    document.getElementById('registration-form').reset();
+                })
+                .catch(() => alert("Սխալ տեղի ունեցավ:"))
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerText = "Ուղարկել Հայտը";
+                });
+        });
+    </script>
+</body>
+</html>
