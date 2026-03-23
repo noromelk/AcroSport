@@ -14,11 +14,20 @@
         .add-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
         input, select { padding: 10px; border: 1px solid #ccc; border-radius: 8px; outline: none; }
         .btn-add { background: #28a745; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; min-width: 900px; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
         th { background: #1a1a1a; color: #ffcc00; }
         .delete-btn { background: #ff4d4d; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 5px; }
         button#login-btn { width: 100%; background: #1a1a1a; color: #ffcc00; padding: 12px; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 10px; }
+        
+        /* Նոր ոճեր */
+        .student-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1px solid #ddd; }
+        .btn-attendance { padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 2px; }
+        .present { background: #28a745; color: white; }
+        .absent { background: #dc3545; color: white; }
+        .pay-status { padding: 5px; border-radius: 5px; font-size: 13px; }
+        .paid { border: 2px solid #28a745; background: #e8f5e9; }
+        .unpaid { border: 2px solid #ff4d4d; background: #ffebee; }
     </style>
 </head>
 <body>
@@ -40,20 +49,21 @@
                 <input type="number" id="add-age" placeholder="Տարիք">
                 <input type="tel" id="add-phone" placeholder="Հեռախոս">
                 <select id="add-day">
-                    <option value="Երեքշաբթի">Երեքշաբթի</option>
+                    <option value="Երկուշաբթի">Երկուշաբթի</option>
                     <option value="Չորեքշաբթի">Չորեքշաբթի</option>
-                    <option value="Հինգշաբթի">Հինգշաբթի</option>
                     <option value="Ուրբաթ">Ուրբաթ</option>
                 </select>
                 <select id="add-time">
                     <option value="15:00">15:00</option>
                     <option value="16:00">16:00</option>
                     <option value="17:00">17:00</option>
+                    <option value="17:30">17:30</option>
                     <option value="18:00">18:00</option>
                 </select>
                 <select id="add-gym">
-                    <option value="Մարզադահլիճ 1">Մարզադահլիճ 1</option>
-                    <option value="Մարզադահլիճ 2">Մարզադահլիճ 2</option>
+                    <option value="Դավթաշեն">Դավթաշեն</option>
+                    <option value="Այգեկ">Այգեկ</option>
+                    <option value="Նոր Գեղի">Նոր Գեղի</option>
                 </select>
                 <button class="btn-add" id="manual-add-btn">Ավելացնել</button>
             </div>
@@ -65,13 +75,15 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>Նկար</th>
                             <th>Ծնող</th>
                             <th>Երեխա</th>
                             <th>Տարիք</th>
                             <th>Հեռախոս</th>
-                            <th>Օր</th>
-                            <th>Ժամ</th>
+                            <th>Օր/Ժամ</th>
                             <th>Դահլիճ</th>
+                            <th>Ներկա/Բացակա</th>
+                            <th>Վարձավճար</th>
                             <th>Ջնջել</th>
                         </tr>
                     </thead>
@@ -84,7 +96,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-        import { getDatabase, ref, onValue, remove, push } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+        import { getDatabase, ref, onValue, remove, push, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCsOaBKfyOfLkCq8rX6tKaaRMLIdLS4w0Y",
@@ -98,6 +110,19 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+
+        // --- ԱՎՏՈՄԱՏ ԺԱՄԻ ՓՈՓՈԽՈՒԹՅՈՒՆ (ՆՈՐ) ---
+        const gymInput = document.getElementById('add-gym');
+        const timeInput = document.getElementById('add-time');
+
+        gymInput.addEventListener('change', function() {
+            if (this.value === "Այգեկ" || this.value === "Նոր Գեղի") {
+                timeInput.value = "15:00";
+            } else if (this.value === "Դավթաշեն") {
+                timeInput.value = "17:30";
+            }
+        });
+        // ---------------------------------------
 
         document.getElementById('login-btn').addEventListener('click', () => {
             if(document.getElementById('admin-pass').value === "Acro2026") {
@@ -114,20 +139,47 @@
                 snapshot.forEach((childSnapshot) => {
                     const data = childSnapshot.val();
                     const id = childSnapshot.key;
+                    
+                    const attendanceStatus = data.attendance || "---";
+                    const paymentStatus = data.payment || "unpaid";
+
                     tbody.innerHTML += `
                         <tr>
+                            <td>
+                                ${data.child_photo ? `<img src="${data.child_photo}" class="student-img" onclick="window.open(this.src)">` : '---'}
+                            </td>
                             <td>${data.parent_name}</td>
                             <td>${data.child_name}</td>
                             <td>${data.child_age}</td>
                             <td>${data.phone}</td>
-                            <td>${data.visit_day}</td>
-                            <td>${data.visit_time}</td>
+                            <td>${data.visit_day} / ${data.visit_time}</td>
                             <td>${data.gym_location || '-'}</td>
+                            <td>
+                                <button class="btn-attendance present" onclick="markAttendance('${id}', 'Ներկա')">Ն</button>
+                                <button class="btn-attendance absent" onclick="markAttendance('${id}', 'Բացակա')">Բ</button>
+                                <div style="font-size:10px; margin-top:5px;">Կարգավիճակ: <b>${attendanceStatus}</b></div>
+                            </td>
+                            <td>
+                                <select class="pay-status ${paymentStatus}" onchange="updatePayment('${id}', this.value)">
+                                    <option value="unpaid" ${paymentStatus === 'unpaid' ? 'selected' : ''}>Չվճարված</option>
+                                    <option value="paid" ${paymentStatus === 'paid' ? 'selected' : ''}>Վճարված</option>
+                                </select>
+                            </td>
                             <td><button class="delete-btn" onclick="deleteData('${id}')">Ջնջել</button></td>
                         </tr>`;
                 });
             });
         }
+
+        window.markAttendance = (id, status) => {
+            update(ref(db, 'registrations/' + id), { attendance: status });
+        };
+
+        window.updatePayment = (id, status) => {
+            update(ref(db, 'registrations/' + id), { payment: status });
+        };
+
+        window.deleteData = (id) => { if(confirm("Ջնջե՞լ")) remove(ref(db, 'registrations/' + id)); };
 
         document.getElementById('manual-add-btn').addEventListener('click', () => {
             const newData = {
@@ -138,6 +190,8 @@
                 visit_day: document.getElementById('add-day').value,
                 visit_time: document.getElementById('add-time').value,
                 gym_location: document.getElementById('add-gym').value,
+                payment: "unpaid",
+                attendance: "---",
                 timestamp: new Date().toLocaleString()
             };
             if(newData.parent_name && newData.child_name) {
@@ -147,8 +201,6 @@
                 });
             }
         });
-
-        window.deleteData = (id) => { if(confirm("Ջնջե՞լ")) remove(ref(db, 'registrations/' + id)); };
     </script>
 </body>
 </html>
