@@ -3,94 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AcroSport - Գերհզոր Ադմին Վահանակ</title>
+    <title>AcroSport Admin - Գերհզոր Մատյան</title>
     <link href="https://fonts.googleapis.com/css2?family=Armenian+Noto+Sans&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans Armenian', sans-serif; background: #f4f4f9; padding: 10px; margin: 0; }
-        header { background: #1a1a1a; color: #ffcc00; padding: 20px; text-align: center; font-weight: bold; font-size: 22px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        #login-box { max-width: 350px; margin: 80px auto; background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        #admin-panel { display: none; max-width: 1300px; margin: 10px auto; }
-        .section { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h3 { border-bottom: 2px solid #ffcc00; padding-bottom: 8px; margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
+        body { font-family: 'Noto Sans Armenian', sans-serif; background: #f0f2f5; padding: 10px; margin: 0; }
+        header { background: #1a1a1a; color: #ffcc00; padding: 15px; text-align: center; font-weight: bold; font-size: 20px; }
+        #admin-panel { display: none; max-width: 1250px; margin: 10px auto; }
+        .section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        /* Կառավարման վահանակ */
-        .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; background: #eee; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        .filter-btn { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: white; border: 1px solid #ccc; transition: 0.3s; }
+        /* Ֆիլտրեր */
+        .controls { display: flex; gap: 8px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; align-items: center; border: 1px solid #ddd; }
+        .filter-btn { padding: 8px 15px; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; background: white; font-weight: bold; }
         .filter-btn.active { background: #ffcc00; border-color: #1a1a1a; }
-        .date-picker { padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-weight: bold; font-family: inherit; }
-
+        
         /* Աղյուսակ */
         .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; background: white; min-width: 1000px; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: center; font-size: 14px; }
-        th { background: #1a1a1a; color: #ffcc00; position: sticky; top: 0; }
-        
-        .student-img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #ffcc00; cursor: pointer; }
-        .att-radio { transform: scale(1.4); cursor: pointer; accent-color: #ffcc00; }
-        
-        /* Վճարման կարգավիճակ */
-        .pay-status { padding: 8px; border-radius: 8px; font-weight: bold; width: 100%; border: 2px solid #ccc; cursor: pointer; }
-        .paid { border-color: #28a745; background: #e8f5e9; }
-        .unpaid { border-color: #dc3545; background: #ffebee; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th, td { padding: 10px; border: 1px solid #eee; text-align: center; font-size: 14px; }
+        th { background: #1a1a1a; color: #ffcc00; }
+        .student-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 1px solid #ffcc00; }
 
-        /* Ավելացնելու ֆորմա */
-        .add-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px; }
-        .add-form input, .add-form select { padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
+        /* Վճարման կարգավիճակի ոճերը */
+        .pay-select { padding: 6px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 110px; }
+        .paid { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .unpaid { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        /* Modal Պատմություն */
+        #history-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .history-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; position: relative; }
+        .hist-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; }
+
         .btn-add { background: #28a745; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .delete-btn { background: #ff4d4d; color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 6px; }
-
-        .archive-btn { background: #1a1a1a; color: #ffcc00; border: none; padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .save-all-btn { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-left: auto; }
     </style>
 </head>
 <body>
 
-    <header>AcroSport Admin System</header>
+    <header>AcroSport - Կառավարման Համակարգ</header>
 
-    <div id="login-box">
-        <h2>Մուտք Ադմին</h2>
+    <div id="login-box" style="max-width:350px; margin:80px auto; text-align:center; background:white; padding:25px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
         <input type="password" id="admin-pass" placeholder="Գաղտնաբառ" style="width:90%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc;">
-        <button id="login-btn" style="width:96%; padding:12px; background:#1a1a1a; color:#ffcc00; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">ՄՈՒՏՔ</button>
+        <button id="login-btn" style="width:96%; padding:10px; background:#1a1a1a; color:#ffcc00; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">ՄՈՒՏՔ</button>
     </div>
 
     <div id="admin-panel">
         <div class="section">
             <h3>Ավելացնել Աշակերտ</h3>
-            <div class="add-form">
-                <input type="text" id="add-parent" placeholder="Ծնողի անուն">
-                <input type="text" id="add-child" placeholder="Երեխայի անուն">
-                <input type="number" id="add-age" placeholder="Տարիք">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+                <input type="text" id="add-parent" placeholder="Ծնող">
+                <input type="text" id="add-child" placeholder="Երեխա">
                 <input type="tel" id="add-phone" placeholder="Հեռախոս">
-                <select id="add-day">
-                    <option value="Երկուշաբթի">Երկուշաբթի</option>
-                    <option value="Չորեքշաբթի">Չորեքշաբթի</option>
-                    <option value="Ուրբաթ">Ուրբաթ</option>
-                </select>
                 <select id="add-gym">
                     <option value="Դավթաշեն">Դավթաշեն</option>
                     <option value="Այգեկ">Այգեկ</option>
                     <option value="Նոր Գեղի">Նոր Գեղի</option>
                 </select>
-                <input type="hidden" id="add-time" value="17:30">
+                <input type="file" id="add-photo" accept="image/*">
                 <button class="btn-add" id="manual-add-btn">ԱՎԵԼԱՑՆԵԼ</button>
             </div>
         </div>
 
         <div class="section">
-            <h3>Հաճախումների և Վճարների Մատյան 
-                <button class="archive-btn" onclick="archiveMonthlyPayments()">🔄 Փակել Ամիսը</button>
-            </h3>
-            
             <div class="controls">
-                <strong>Դահլիճ՝</strong>
-                <button class="filter-btn active" onclick="setGym('all')">Բոլորը</button>
-                <button class="filter-btn" onclick="setGym('Դավթաշեն')">Դավթաշեն</button>
-                <button class="filter-btn" onclick="setGym('Այգեկ')">Այգեկ</button>
-                <button class="filter-btn" onclick="setGym('Նոր Գեղի')">Նոր Գեղի</button>
-                
-                <span style="margin-left: 15px;"><strong>Ամսաթիվ՝</strong></span>
-                <input type="date" id="attendance-date" class="date-picker">
-                
-                <button class="filter-btn" style="background:#28a745; color:white;" id="save-attendance-btn">ՊԱՀՊԱՆԵԼ ՀԱՃԱԽՈՒՄՆԵՐԸ</button>
+                <strong>Զտել՝</strong>
+                <button class="filter-btn active" data-gym="all">Բոլորը</button>
+                <button class="filter-btn" data-gym="Դավթաշեն">Դավթաշեն</button>
+                <button class="filter-btn" data-gym="Այգեկ">Այգեկ</button>
+                <button class="filter-btn" data-gym="Նոր Գեղի">Նոր Գեղի</button>
+                <input type="date" id="attendance-date" style="padding:7px; border-radius:5px; border:1px solid #ccc; margin-left:15px;">
+                <button class="save-all-btn" id="save-attendance">ՊԱՀՊԱՆԵԼ Ն/Բ</button>
             </div>
 
             <div class="table-container">
@@ -98,11 +79,9 @@
                     <thead>
                         <tr>
                             <th>Նկար</th>
-                            <th>Երեխա</th>
-                            <th>Օր / Ժամ</th>
+                            <th>Աշակերտ</th>
                             <th>Դահլիճ</th>
-                            <th>Ներկա (Ն)</th>
-                            <th>Բացակա (Բ)</th>
+                            <th>Ներկա / Բացակա</th>
                             <th>Վճարում</th>
                             <th>Գործողություն</th>
                         </tr>
@@ -111,11 +90,20 @@
                 </table>
             </div>
         </div>
+        <button id="archive-month-btn" style="padding:12px; background:#ff4d4d; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">🔄 Փակել Ամիսը (Արխիվացնել)</button>
+    </div>
+
+    <div id="history-overlay">
+        <div class="history-content">
+            <span onclick="document.getElementById('history-overlay').style.display='none'" style="float:right; cursor:pointer; font-size:24px;">&times;</span>
+            <h3 id="hist-student-name"></h3>
+            <div id="history-data"></div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-        import { getDatabase, ref, onValue, push, update, remove, get, set } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+        import { getDatabase, ref, onValue, get, set, update, push, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCsOaBKfyOfLkCq8rX6tKaaRMLIdLS4w0Y",
@@ -134,57 +122,62 @@
         const dateInput = document.getElementById('attendance-date');
         dateInput.value = new Date().toISOString().split('T')[0];
 
-        // ՄՈՒՏՔԻ ՍՏՈՒԳՈՒՄ
+        // ԼՈԳԻՆ
         document.getElementById('login-btn').addEventListener('click', () => {
             if(document.getElementById('admin-pass').value === "Acro2026") {
                 document.getElementById('login-box').style.display = 'none';
                 document.getElementById('admin-panel').style.display = 'block';
-                loadMainData();
-            } else alert("Սխալ գաղտնաբառ:");
+                loadMainTable();
+            }
         });
 
-        // ՖԻԼՏՐԻ ՖՈՒՆԿՑԻԱ
-        window.setGym = (gym) => {
-            selectedGym = gym;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            if(event) event.target.classList.add('active');
-            loadMainData();
-        };
+        // ՖԻԼՏՐ
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedGym = btn.getAttribute('data-gym');
+                loadMainTable();
+            });
+        });
 
-        // ՀԻՄՆԱԿԱՆ ՏՎՅԱԼՆԵՐԻ ԲԵՌՆՈՒՄ
-        async function loadMainData() {
-            const selectedDate = dateInput.value;
-            const attSnap = await get(ref(db, 'attendance/' + selectedDate));
-            const dailyAttendance = attSnap.exists() ? attSnap.val() : {};
+        // ԱՂՅՈՒՍԱԿԻ ԲԵՌՆՈՒՄ
+        async function loadMainTable() {
+            const date = dateInput.value;
+            const attSnap = await get(ref(db, 'attendance/' + date));
+            const dailyData = attSnap.exists() ? attSnap.val() : {};
 
             onValue(ref(db, 'registrations'), (snapshot) => {
                 const tbody = document.getElementById('main-table-body');
                 tbody.innerHTML = "";
-                
-                snapshot.forEach((childSnapshot) => {
-                    const data = childSnapshot.val();
-                    const id = childSnapshot.key;
+                snapshot.forEach(child => {
+                    const data = child.val();
+                    const id = child.key;
 
-                    if (selectedGym === 'all' || data.gym_location === selectedGym) {
-                        const isPresent = dailyAttendance[id] === "Ներկա" ? "checked" : "";
-                        const isAbsent = dailyAttendance[id] === "Բացակա" ? "checked" : "";
-                        const payStatus = data.payment || "unpaid";
+                    if(selectedGym === 'all' || data.gym_location === selectedGym) {
+                        const isN = dailyData[id] === "Ներկա" ? "checked" : "";
+                        const isB = dailyData[id] === "Բացակա" ? "checked" : "";
+                        const pStatus = data.payment || "unpaid";
 
                         tbody.innerHTML += `
                             <tr>
-                                <td><img src="${data.child_photo || 'https://via.placeholder.com/50'}" class="student-img" onclick="window.open(this.src)"></td>
-                                <td style="text-align:left;"><b>${data.child_name}</b><br><small>${data.phone}</small></td>
-                                <td>${data.visit_day}<br>${data.visit_time}</td>
+                                <td><img src="${data.child_photo || 'https://via.placeholder.com/50'}" class="student-img"></td>
+                                <td><b>${data.child_name}</b></td>
                                 <td>${data.gym_location}</td>
-                                <td><input type="radio" name="att-${id}" value="Ներկա" ${isPresent} class="att-radio"></td>
-                                <td><input type="radio" name="att-${id}" value="Բացակա" ${isAbsent} class="att-radio"></td>
                                 <td>
-                                    <select class="pay-status ${payStatus}" onchange="updatePayment('${id}', this.value)">
-                                        <option value="unpaid" ${payStatus === 'unpaid' ? 'selected' : ''}>Չվճարված</option>
-                                        <option value="paid" ${payStatus === 'paid' ? 'selected' : ''}>Վճարված</option>
+                                    <input type="radio" name="att-${id}" value="Ներկա" ${isN}> Ն
+                                    <input type="radio" name="att-${id}" value="Բացակա" ${isB}> Բ
+                                </td>
+                                <td>
+                                    <select class="pay-select ${pStatus}" onchange="updatePayStatus('${id}', this.value)">
+                                        <option value="unpaid" ${pStatus==='unpaid'?'selected':''}>Չվճարված</option>
+                                        <option value="paid" ${pStatus==='paid'?'selected':''}>Վճարված</option>
                                     </select>
                                 </td>
-                                <td><button class="delete-btn" onclick="deleteStudent('${id}')">🗑️</button></td>
+                                <td>
+                                    <button onclick="showHistory('${id}', '${data.child_name}')">📋</button>
+                                    <button onclick="delStud('${id}')">🗑️</button>
+                                </td>
                             </tr>
                         `;
                     }
@@ -192,80 +185,74 @@
             });
         }
 
-        // ՀԱՃԱԽՈՒՄՆԵՐԻ ՊԱՀՊԱՆՈՒՄ (Ամեն օրվա համար առանձին)
-        document.getElementById('save-attendance-btn').addEventListener('click', () => {
+        // ՎՃԱՐՄԱՆ ԹԱՐՄԱՑՈՒՄ (Միշտ պահվում է բազայում)
+        window.updatePayStatus = (id, val) => {
+            update(ref(db, `registrations/${id}`), { payment: val });
+        };
+
+        // ՊԱՀՊԱՆԵԼ Ն/Բ
+        document.getElementById('save-attendance').addEventListener('click', () => {
             const date = dateInput.value;
-            const attendanceData = {};
-            document.querySelectorAll('.att-radio:checked').forEach(radio => {
-                const id = radio.name.replace('att-', '');
-                attendanceData[id] = radio.value;
+            const updates = {};
+            document.querySelectorAll('input[type="radio"]:checked').forEach(r => {
+                updates[r.name.replace('att-', '')] = r.value;
             });
-
-            set(ref(db, 'attendance/' + date), attendanceData).then(() => {
-                alert(date + " ամսաթվի հաճախումները պահպանվեցին:");
-            });
+            set(ref(db, 'attendance/' + date), updates).then(() => alert("Պահպանվեց:"));
         });
 
-        // ՎՃԱՐՄԱՆ ԹԱՐՄԱՑՈՒՄ
-        window.updatePayment = (id, status) => {
-            update(ref(db, 'registrations/' + id), { payment: status });
-        };
-
-        // ԱՇԱԿԵՐՏԻ ՋՆՋՈՒՄ
-        window.deleteStudent = (id) => {
-            if(confirm("Համոզվա՞ծ եք, որ ուզում եք ջնջել այս աշակերտին:")) {
-                remove(ref(db, 'registrations/' + id));
-            }
-        };
-
-        // ԱՄՍՎԱ ՎՃԱՐՈՒՄՆԵՐԻ ԱՐԽԻՎԱՑՈՒՄ ԵՎ ԶՐՈՅԱՑՈՒՄ
-        window.archiveMonthlyPayments = async () => {
-            const currentMonth = new Date().toISOString().slice(0, 7);
-            if(!confirm(currentMonth + " ամսվա վճարումները կարխիվացվեն և բոլորը կդառնան «Չվճարված»։ Շարունակե՞լ։")) return;
-
-            const snapshot = await get(ref(db, 'registrations'));
-            if(snapshot.exists()) {
-                const updates = {};
-                const archive = {};
-                snapshot.forEach(child => {
-                    const id = child.key;
-                    const data = child.val();
-                    archive[id] = { name: data.child_name, status: data.payment || 'unpaid' };
-                    updates[`registrations/${id}/payment`] = "unpaid";
-                });
-                await set(ref(db, 'payments_archive/' + currentMonth), archive);
-                await update(ref(db), updates);
-                alert("Ամիսը փակվեց հաջողությամբ։");
-            }
-        };
-
-        // ՁԵՌՔՈՎ ԱՎԵԼԱՑՆԵԼ
+        // ԱՎԵԼԱՑՆԵԼ ՆՈՐՈՒՆ
         document.getElementById('manual-add-btn').addEventListener('click', () => {
-            const gym = document.getElementById('add-gym').value;
-            let time = (gym === "Այգեկ" || gym === "Նոր Գեղի") ? "15:00" : "17:30";
-            
-            const newData = {
-                parent_name: document.getElementById('add-parent').value,
-                child_name: document.getElementById('add-child').value,
-                child_age: document.getElementById('add-age').value,
-                phone: document.getElementById('add-phone').value,
-                visit_day: document.getElementById('add-day').value,
-                visit_time: time,
-                gym_location: gym,
-                payment: "unpaid",
-                child_photo: "",
-                timestamp: new Date().toLocaleString()
+            const file = document.getElementById('add-photo').files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const newData = {
+                    child_name: document.getElementById('add-child').value,
+                    parent_name: document.getElementById('add-parent').value,
+                    phone: document.getElementById('add-phone').value,
+                    gym_location: document.getElementById('add-gym').value,
+                    payment: "unpaid",
+                    child_photo: reader.result
+                };
+                push(ref(db, 'registrations'), newData).then(() => alert("Ավելացվեց:"));
             };
-
-            if(newData.child_name && newData.phone) {
-                push(ref(db, 'registrations'), newData).then(() => {
-                    alert("Աշակերտը ավելացվեց:");
-                    document.querySelectorAll('.add-form input').forEach(i => i.value = "");
-                });
-            } else alert("Լրացրեք անունը և հեռախոսը:");
+            if(file) reader.readAsDataURL(file);
+            else alert("Ընտրեք նկար:");
         });
 
-        dateInput.addEventListener('change', loadMainData);
+        // ՊԱՏՄՈՒԹՅՈՒՆ
+        window.showHistory = async (id, name) => {
+            document.getElementById('history-overlay').style.display = 'flex';
+            document.getElementById('hist-student-name').innerText = name;
+            const attSnap = await get(ref(db, 'attendance'));
+            let html = "";
+            if(attSnap.exists()) {
+                const all = attSnap.val();
+                Object.keys(all).reverse().forEach(date => {
+                    if(all[date][id]) html += `<div class="hist-row"><span>${date}</span> <b>${all[date][id]}</b></div>`;
+                });
+            }
+            document.getElementById('history-data').innerHTML = html || "Պատմություն չկա:";
+        };
+
+        // ԱՄՍՎԱ ՓԱԿՈՒՄ (ԱՐԽԻՎԱՑՈՒՄ)
+        document.getElementById('archive-month-btn').addEventListener('click', async () => {
+            const month = new Date().toISOString().slice(0, 7);
+            if(!confirm(month + " ամիսը կփակվի, և բոլոր վճարումները կդառնան «Չվճարված»:")) return;
+            
+            const snap = await get(ref(db, 'registrations'));
+            const archive = {};
+            const updates = {};
+            snap.forEach(c => {
+                archive[c.key] = { name: c.val().child_name, status: c.val().payment };
+                updates[`registrations/${c.key}/payment`] = "unpaid";
+            });
+            await set(ref(db, `payments_archive/${month}`), archive);
+            await update(ref(db), updates);
+            alert("Ամիսը հաջողությամբ փակվեց:");
+        });
+
+        window.delStud = (id) => { if(confirm("Ջնջե՞լ")) remove(ref(db, `registrations/${id}`)); };
+        dateInput.addEventListener('change', loadMainTable);
     </script>
 </body>
 </html>
