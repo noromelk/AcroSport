@@ -20,8 +20,8 @@
         .delete-btn { background: #ff4d4d; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 5px; }
         button#login-btn { width: 100%; background: #1a1a1a; color: #ffcc00; padding: 12px; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 10px; }
         
-        /* Նոր ոճեր */
-        .student-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1px solid #ddd; }
+        /* Նկարի ոճը */
+        .student-img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid #ffcc00; background: #eee; }
         .btn-attendance { padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 2px; }
         .present { background: #28a745; color: white; }
         .absent { background: #dc3545; color: white; }
@@ -42,7 +42,7 @@
 
     <div id="admin-panel">
         <div class="section">
-            <h3>Ավելացնել նոր աշակերտ</h3>
+            <h3>Ավելացնել նոր աշակերտ (Ձեռքով)</h3>
             <div class="add-form">
                 <input type="text" id="add-parent" placeholder="Ծնող">
                 <input type="text" id="add-child" placeholder="Երեխա">
@@ -55,10 +55,7 @@
                 </select>
                 <select id="add-time">
                     <option value="15:00">15:00</option>
-                    <option value="16:00">16:00</option>
-                    <option value="17:00">17:00</option>
                     <option value="17:30">17:30</option>
-                    <option value="18:00">18:00</option>
                 </select>
                 <select id="add-gym">
                     <option value="Դավթաշեն">Դավթաշեն</option>
@@ -111,18 +108,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- ԱՎՏՈՄԱՏ ԺԱՄԻ ՓՈՓՈԽՈՒԹՅՈՒՆ (ՆՈՐ) ---
-        const gymInput = document.getElementById('add-gym');
-        const timeInput = document.getElementById('add-time');
-
-        gymInput.addEventListener('change', function() {
-            if (this.value === "Այգեկ" || this.value === "Նոր Գեղի") {
-                timeInput.value = "15:00";
-            } else if (this.value === "Դավթաշեն") {
-                timeInput.value = "17:30";
-            }
+        // Ավտոմատ ժամի փոփոխություն ադմինում
+        const gymInp = document.getElementById('add-gym');
+        const timeInp = document.getElementById('add-time');
+        gymInp.addEventListener('change', () => {
+            if (gymInp.value === "Այգեկ" || gymInp.value === "Նոր Գեղի") timeInp.value = "15:00";
+            else if (gymInp.value === "Դավթաշեն") timeInp.value = "17:30";
         });
-        // ---------------------------------------
 
         document.getElementById('login-btn').addEventListener('click', () => {
             if(document.getElementById('admin-pass').value === "Acro2026") {
@@ -143,11 +135,14 @@
                     const attendanceStatus = data.attendance || "---";
                     const paymentStatus = data.payment || "unpaid";
 
+                    // Այստեղ ստուգում ենք data.child_photo-ն
+                    const studentImg = data.child_photo 
+                        ? `<img src="${data.child_photo}" class="student-img" onclick="window.open(this.src)">` 
+                        : `<div class="student-img" style="display:flex;align-items:center;justify-content:center;font-size:10px;background:#ddd;">No Pic</div>`;
+
                     tbody.innerHTML += `
                         <tr>
-                            <td>
-                                ${data.child_photo ? `<img src="${data.child_photo}" class="student-img" onclick="window.open(this.src)">` : '---'}
-                            </td>
+                            <td>${studentImg}</td>
                             <td>${data.parent_name}</td>
                             <td>${data.child_name}</td>
                             <td>${data.child_age}</td>
@@ -171,14 +166,8 @@
             });
         }
 
-        window.markAttendance = (id, status) => {
-            update(ref(db, 'registrations/' + id), { attendance: status });
-        };
-
-        window.updatePayment = (id, status) => {
-            update(ref(db, 'registrations/' + id), { payment: status });
-        };
-
+        window.markAttendance = (id, status) => { update(ref(db, 'registrations/' + id), { attendance: status }); };
+        window.updatePayment = (id, status) => { update(ref(db, 'registrations/' + id), { payment: status }); };
         window.deleteData = (id) => { if(confirm("Ջնջե՞լ")) remove(ref(db, 'registrations/' + id)); };
 
         document.getElementById('manual-add-btn').addEventListener('click', () => {
@@ -192,6 +181,7 @@
                 gym_location: document.getElementById('add-gym').value,
                 payment: "unpaid",
                 attendance: "---",
+                child_photo: "", // Ձեռքով ավելացնելիս նկարը դատարկ է մնում
                 timestamp: new Date().toLocaleString()
             };
             if(newData.parent_name && newData.child_name) {
