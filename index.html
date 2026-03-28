@@ -264,7 +264,9 @@
 
     <a href="admin.html" class="admin-btn">Մուտք Ադմին</a>
 
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
@@ -283,6 +285,9 @@
         const db = getDatabase(app);
         emailjs.init("AuU5y72Z9N4khQdVy");
 
+
+
+    
         // ԱՎՏՈՄԱՏ ԺԱՄԻ ՓՈՓՈԽՈՒԹՅՈՒՆ
         const gymSelect = document.getElementById('gym-location');
         const timeSelect = document.getElementById('visit-time');
