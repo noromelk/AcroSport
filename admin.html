@@ -11,12 +11,21 @@
         #admin-panel { display: none; max-width: 1250px; margin: 10px auto; }
         .section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
 
-        /* Վիճակագրության ոճը */
-        .stats-box { background: #1a1a1a; color: #ffcc00; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        .stats-count { font-size: 22px; color: white; }
+        /* Վիճակագրության ԹԱՐՄԱՑՎԱԾ, ՀԱՍԱՐԱԿ Ոճը */
+        .stats-area {
+            font-weight: bold;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 15px; /* Ավելացնում ենք հեռավորություն ամսաթվի դաշտից */
+            color: #555; /* Label-ի գույնը՝ մոխրագույն, ինչպես input-ների placeholder-ները */
+        }
+        .stats-area span {
+            color: #ffaa00; /* Հաշվիչի գույնը՝ պարզ նարնջագույն, բայց ոչ սև տուփում */
+            font-size: 1.1em; /* Մի փոքր ավելի մեծ տառաչափ թվի համար */
+        }
 
         /* Ֆիլտրեր */
-        .controls { display: flex; gap: 12px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; align-items: center; border: 1px solid #ddd; }
+        .controls { display: flex; gap: 8px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; align-items: center; border: 1px solid #ddd; }
         .filter-btn { padding: 8px 15px; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; background: white; font-weight: bold; }
         .filter-btn.active { background: #ffcc00; border-color: #1a1a1a; }
 
@@ -75,12 +84,9 @@
                 <button class="filter-btn" data-gym="Այգեկ">Այգեկ</button>
                 <button class="filter-btn" data-gym="Նոր Գեղի">Նոր Գեղի</button>
                 
-                <div class="stats-box">
-                    <span>Աշակերտներ՝</span>
-                    <span id="student-count" class="stats-count">0</span>
-                </div>
+                <strong class="stats-area">Աշակերտներ՝ <span id="student-count">0</span></strong>
 
-                <input type="date" id="attendance-date" style="padding:7px; border-radius:5px; border:1px solid #ccc; margin-left:15px;">
+                <input type="date" id="attendance-date" style="padding:7px; border-radius:5px; border:1px solid #ccc;">
                 <button class="save-all-btn" id="save-attendance">ՊԱՀՊԱՆԵԼ Ն/Բ</button>
             </div>
 
