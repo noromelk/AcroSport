@@ -10,12 +10,16 @@
         header { background: #1a1a1a; color: #ffcc00; padding: 15px; text-align: center; font-weight: bold; font-size: 20px; }
         #admin-panel { display: none; max-width: 1250px; margin: 10px auto; }
         .section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        
+
+        /* Վիճակագրության ոճը */
+        .stats-box { background: #1a1a1a; color: #ffcc00; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .stats-count { font-size: 22px; color: white; }
+
         /* Ֆիլտրեր */
-        .controls { display: flex; gap: 8px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; align-items: center; border: 1px solid #ddd; }
+        .controls { display: flex; gap: 12px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; align-items: center; border: 1px solid #ddd; }
         .filter-btn { padding: 8px 15px; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; background: white; font-weight: bold; }
         .filter-btn.active { background: #ffcc00; border-color: #1a1a1a; }
-        
+
         /* Աղյուսակ */
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
@@ -70,6 +74,12 @@
                 <button class="filter-btn" data-gym="Դավթաշեն">Դավթաշեն</button>
                 <button class="filter-btn" data-gym="Այգեկ">Այգեկ</button>
                 <button class="filter-btn" data-gym="Նոր Գեղի">Նոր Գեղի</button>
+                
+                <div class="stats-box">
+                    <span>Աշակերտներ՝</span>
+                    <span id="student-count" class="stats-count">0</span>
+                </div>
+
                 <input type="date" id="attendance-date" style="padding:7px; border-radius:5px; border:1px solid #ccc; margin-left:15px;">
                 <button class="save-all-btn" id="save-attendance">ՊԱՀՊԱՆԵԼ Ն/Բ</button>
             </div>
@@ -141,7 +151,7 @@
             });
         });
 
-        // ԱՂՅՈՒՍԱԿԻ ԲԵՌՆՈՒՄ
+        // ԱՂՅՈՒՍԱԿԻ ԲԵՌՆՈՒՄ ԵՎ ՀԱՇՎԱՌՈՒՄ
         async function loadMainTable() {
             const date = dateInput.value;
             const attSnap = await get(ref(db, 'attendance/' + date));
@@ -149,12 +159,18 @@
 
             onValue(ref(db, 'registrations'), (snapshot) => {
                 const tbody = document.getElementById('main-table-body');
+                const countDisplay = document.getElementById('student-count');
                 tbody.innerHTML = "";
+                
+                let studentCounter = 0; // Հաշվիչ փոփոխական
+
                 snapshot.forEach(child => {
                     const data = child.val();
                     const id = child.key;
 
                     if(selectedGym === 'all' || data.gym_location === selectedGym) {
+                        studentCounter++; // Ավելացնում ենք հաշվիչը ամեն համընկնող աշակերտի համար
+                        
                         const isN = dailyData[id] === "Ներկա" ? "checked" : "";
                         const isB = dailyData[id] === "Բացակա" ? "checked" : "";
                         const pStatus = data.payment || "unpaid";
@@ -182,10 +198,11 @@
                         `;
                     }
                 });
+                countDisplay.innerText = studentCounter; // Թարմացնում ենք թիվը էկրանին
             });
         }
 
-        // ՎՃԱՐՄԱՆ ԹԱՐՄԱՑՈՒՄ (Միշտ պահվում է բազայում)
+        // ՎՃԱՐՄԱՆ ԹԱՐՄԱՑՈՒՄ
         window.updatePayStatus = (id, val) => {
             update(ref(db, `registrations/${id}`), { payment: val });
         };
@@ -234,11 +251,11 @@
             document.getElementById('history-data').innerHTML = html || "Պատմություն չկա:";
         };
 
-        // ԱՄՍՎԱ ՓԱԿՈՒՄ (ԱՐԽԻՎԱՑՈՒՄ)
+        // ԱՄՍՎԱ ՓԱԿՈՒՄ
         document.getElementById('archive-month-btn').addEventListener('click', async () => {
             const month = new Date().toISOString().slice(0, 7);
             if(!confirm(month + " ամիսը կփակվի, և բոլոր վճարումները կդառնան «Չվճարված»:")) return;
-            
+
             const snap = await get(ref(db, 'registrations'));
             const archive = {};
             const updates = {};
