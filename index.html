@@ -265,14 +265,16 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
+        // ՆՈՐ FIREBASE ՏՎՅԱԼՆԵՐԸ
         const firebaseConfig = {
-            apiKey: "AIzaSyCsOaBKfyOfLkCq8rX6tKaaRMLIdLS4w0Y",
-            authDomain: "acrosport-bdd97.firebaseapp.com",
-            projectId: "acrosport-bdd97",
-            databaseURL: "https://acrosport-bdd97-default-rtdb.firebaseio.com",
-            storageBucket: "acrosport-bdd97.firebasestorage.app",
-            messagingSenderId: "23545482019",
-            appId: "1:23545482019:web:055ec5ff5183264852da96"
+          apiKey: "AIzaSyAfbarsMHvGWOmbwcJySA_z89cDE-7117U",
+          authDomain: "acrosport-14cfe.firebaseapp.com",
+          projectId: "acrosport-14cfe",
+          storageBucket: "acrosport-14cfe.firebasestorage.app",
+          messagingSenderId: "211198940017",
+          appId: "1:211198940017:web:f54096cc1a7627e4c01cd0",
+          measurementId: "G-SBEGJHMN70",
+          databaseURL: "https://acrosport-14cfe-default-rtdb.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -309,6 +311,7 @@
             btn.disabled = true;
             btn.innerText = "Ուղարկվում է...";
 
+            // Տվյալներ EmailJS-ի համար (Հին ձևով՝ բոլոր տվյալներով)
             const formData = {
                 parent_name: document.getElementById('parent-name').value,
                 child_name: document.getElementById('child-name').value,
@@ -321,8 +324,20 @@
                 photo_url: "https://cdn-icons-png.flaticon.com/512/163/163801.png"
             };
 
-            push(ref(db, 'registrations'), formData)
+            // Տվյալներ ՆՈՐ Firebase-ի համար (Որը կերևա Ադմինի էջում)
+            const firebaseData = {
+                fullname: document.getElementById('child-name').value,
+                parentName: document.getElementById('parent-name').value,
+                age: document.getElementById('child-age').value,
+                parentPhone: document.getElementById('phone').value,
+                gymLocation: document.getElementById('gym-location').value,
+                timestamp: Date.now()
+            };
+
+            // Ուղարկում ենք նոր բազայի 'students' բաժին
+            push(ref(db, 'students'), firebaseData)
                 .then(() => {
+                    // Եթե բազայում պահվեց, նոր ուղարկում ենք Email-ը
                     return emailjs.send('service_9uzka1c', 'template_bl6ph28', formData);
                 })
                 .then(() => {
