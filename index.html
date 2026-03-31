@@ -311,7 +311,7 @@
             btn.disabled = true;
             btn.innerText = "Ուղարկվում է...";
 
-            // Տվյալներ EmailJS-ի համար (Հին ձևով՝ բոլոր տվյալներով)
+            // Տվյալներ EmailJS-ի համար
             const formData = {
                 parent_name: document.getElementById('parent-name').value,
                 child_name: document.getElementById('child-name').value,
@@ -324,20 +324,20 @@
                 photo_url: "https://cdn-icons-png.flaticon.com/512/163/163801.png"
             };
 
-            // Տվյալներ ՆՈՐ Firebase-ի համար (Որը կերևա Ադմինի էջում)
+            // Տվյալներ ՆՈՐ Firebase-ի համար (Ավելացվել է child_photo)
             const firebaseData = {
                 fullname: document.getElementById('child-name').value,
                 parentName: document.getElementById('parent-name').value,
                 age: document.getElementById('child-age').value,
                 parentPhone: document.getElementById('phone').value,
                 gymLocation: document.getElementById('gym-location').value,
+                child_photo: document.getElementById('photo-preview').src || "https://cdn-icons-png.flaticon.com/512/163/163801.png",
                 timestamp: Date.now()
             };
 
             // Ուղարկում ենք նոր բազայի 'students' բաժին
             push(ref(db, 'students'), firebaseData)
                 .then(() => {
-                    // Եթե բազայում պահվեց, նոր ուղարկում ենք Email-ը
                     return emailjs.send('service_9uzka1c', 'template_bl6ph28', formData);
                 })
                 .then(() => {
@@ -357,3 +357,4 @@
     </script>
 </body>
 </html>
+
