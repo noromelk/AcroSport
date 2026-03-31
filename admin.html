@@ -115,7 +115,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
         import { getDatabase, ref, onValue, get, set, update, push, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-        // ՆՈՐ FIREBASE ՏՎՅԱԼՆԵՐԸ
         const firebaseConfig = {
             apiKey: "AIzaSyAfbarsMHvGWOmbwcJySA_z89cDE-7117U",
             authDomain: "acrosport-14cfe.firebaseapp.com",
@@ -134,7 +133,6 @@
         const dateInput = document.getElementById('attendance-date');
         dateInput.value = new Date().toISOString().split('T')[0];
 
-        // ԼՈԳԻՆ
         document.getElementById('login-btn').addEventListener('click', () => {
             if(document.getElementById('admin-pass').value === "Acro2026") {
                 document.getElementById('login-box').style.display = 'none';
@@ -143,7 +141,6 @@
             }
         });
 
-        // ՖԻԼՏՐ
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -153,7 +150,6 @@
             });
         });
 
-        // ԱՂՅՈՒՍԱԿԻ ԲԵՌՆՈՒՄ
         async function loadMainTable() {
             const date = dateInput.value;
             const attSnap = await get(ref(db, 'attendance/' + date));
@@ -174,11 +170,14 @@
                         const isN = dailyData[id] === "Ներկա" ? "checked" : "";
                         const isB = dailyData[id] === "Բացակա" ? "checked" : "";
                         const pStatus = data.payment || "unpaid";
+                        
+                        // Այստեղ օգտագործում ենք data.child_photo, որ երևա նկարը
+                        const photoUrl = data.child_photo || 'https://cdn-icons-png.flaticon.com/512/163/163801.png';
 
                         tbody.innerHTML += `
                             <tr>
-                                <td><img src="${data.child_photo || 'https://via.placeholder.com/50'}" class="student-img"></td>
-                                <td><b>${data.fullname}</b></td>
+                                <td><img src="${photoUrl}" class="student-img"></td>
+                                <td><b>${data.fullname || 'Անուն չկա'}</b></td>
                                 <td>${data.gymLocation}</td>
                                 <td>
                                     <input type="radio" name="att-${id}" value="Ներկա" ${isN}> Ն
@@ -202,12 +201,10 @@
             });
         }
 
-        // ՎՃԱՐՄԱՆ ԹԱՐՄԱՑՈՒՄ
         window.updatePayStatus = (id, val) => {
             update(ref(db, `students/${id}`), { payment: val });
         };
 
-        // ՊԱՀՊԱՆԵԼ Ն/Բ
         document.getElementById('save-attendance').addEventListener('click', () => {
             const date = dateInput.value;
             const updates = {};
@@ -217,11 +214,12 @@
             set(ref(db, 'attendance/' + date), updates).then(() => alert("Պահպանվեց:"));
         });
 
-        // ԱՎԵԼԱՑՆԵԼ ՆՈՐՈՒՆ
+        // ԱՎԵԼԱՑՆԵԼ ՆՈՐՈՒՆ (Ուղղված նկարի և դաշտերի անունները)
         document.getElementById('manual-add-btn').addEventListener('click', () => {
-            const file = document.getElementById('add-photo').files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
+            const fileInput = document.getElementById('add-photo');
+            const file = fileInput.files[0];
+            
+            const performAdd = (photoData = null) => {
                 const newData = {
                     fullname: document.getElementById('add-child').value,
                     parentName: document.getElementById('add-parent').value,
@@ -229,22 +227,37 @@
                     age: document.getElementById('add-age').value,
                     gymLocation: document.getElementById('add-gym').value,
                     payment: "unpaid",
-                    child_photo: reader.result,
+                    child_photo: photoData || "https://cdn-icons-png.flaticon.com/512/163/163801.png",
                     timestamp: Date.now()
                 };
-                push(ref(db, 'students'), newData).then(() => alert("Ավելացվեց:"));
+                
+                if(!newData.fullname) { alert("Լրացրեք անունը:"); return; }
+
+                push(ref(db, 'students'), newData).then(() => {
+                    alert("Ավելացվեց:");
+                    // Մաքրում ենք դաշտերը
+                    document.getElementById('add-child').value = "";
+                    document.getElementById('add-parent').value = "";
+                    document.getElementById('add-phone').value = "";
+                    document.getElementById('add-age').value = "";
+                    fileInput.value = "";
+                });
             };
-            if(file) reader.readAsDataURL(file);
-            else alert("Ընտրեք նկար:");
+
+            if(file) {
+                const reader = new FileReader();
+                reader.onloadend = () => performAdd(reader.result);
+                reader.readAsDataURL(file);
+            } else {
+                performAdd(); // Եթե նկար չկա, ավելացնում ենք առանց դրա
+            }
         });
 
-        // ՊԱՏՄՈՒԹՅՈՒՆ ԵՎ ՏՎՅԱԼՆԵՐԻ ԽՄԲԱԳՐՈՒՄ
         window.showHistory = async (id, name) => {
             document.getElementById('history-overlay').style.display = 'flex';
             const infoBox = document.getElementById('student-full-info');
             const histData = document.getElementById('history-data');
-            
-            // Ստանում ենք աշակերտի ամբողջական տվյալները
+
             const studentSnap = await get(ref(db, `students/${id}`));
             const s = studentSnap.val();
 
@@ -259,7 +272,7 @@
             `;
 
             document.getElementById('hist-student-name').innerText = name;
-            
+
             const attSnap = await get(ref(db, 'attendance'));
             let html = "";
             if(attSnap.exists()) {
@@ -271,7 +284,6 @@
             histData.innerHTML = html || "Պատմություն չկա:";
         };
 
-        // ՏԱՐԻՔԻ ՊԱՀՊԱՆՈՒՄ
         window.saveNewAge = (id) => {
             const newAge = document.getElementById(`edit-age-${id}`).value;
             update(ref(db, `students/${id}`), { age: newAge }).then(() => {
@@ -279,7 +291,6 @@
             });
         };
 
-        // ԱՄՍՎԱ ՓԱԿՈՒՄ
         document.getElementById('archive-month-btn').addEventListener('click', async () => {
             const month = new Date().toISOString().slice(0, 7);
             if(!confirm(month + " ամիսը կփակվի, և բոլոր վճարումները կդառնան «Չվճարված»:")) return;
